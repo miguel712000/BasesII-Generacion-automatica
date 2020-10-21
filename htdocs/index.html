@@ -12,6 +12,10 @@
 			}
 		</style>
 		<script>
+			//Variables
+			var dbInfoStr;
+			var isUsingPostgre = false;
+			var isUsingMSServer = false;
 			
 			//función para conectar a base de datos postgreSQL por metodo POST
 			function pgConnect(dbInfoStr)
@@ -33,14 +37,13 @@
 			//procedimiento para conectar a base de datos
 			function connectDatabase()
 			{
-				var pgsql_selected = document.getElementById("radio_pgsql").checked;
-				var mssql_selected = document.getElementById("radio_mssql").checked;
+				isUsingPostgre = document.getElementById("radio_pgsql").checked;
+				isUsingMSServer = document.getElementById("radio_mssql").checked;
 				
 				var portNumber = document.getElementById("portNumber");
 				
 				//codificación de form con info de base de datos para metodo POST
 				var dbInfo = document.getElementById("dbInfo").elements;
-				var dbInfoStr;
 				var dbInfoPairs = [];
 				for (i = 0; i < dbInfo.length; i++){
 					dbInfoPairs.push(encodeURIComponent(dbInfo[i].name) + '=' + encodeURIComponent(dbInfo[i].value));
@@ -51,10 +54,10 @@
 				//validación de numero de puerto y selección de motor de bd
 				if(ValidatePortNumber(portNumber.value))
 				{
-					if(pgsql_selected){
+					if(isUsingPostgre){
 						pgConnect(dbInfoStr);
 					}
-					else if(mssql_selected){
+					else if(isUsingMSServer){
 				
 					}
 				}
@@ -78,16 +81,36 @@
 			}
 			
 			//función para confirmar la selección de tablas para CRUDs
-			function submitTables(tableElement)
+			function generateSQLCode(tableElement)
 			{
 				var table = document.getElementById(tableElement);
 				var rowCount = table.rows.length;
 				var checkBoxes = table.getElementsByTagName("INPUT");
-				for (i=0; i < checkBoxes.length; i++){
-					if(checkBoxes[i].checked){
-						console.log(checkBoxes[i].name);
+				var schemaInfo = [];
+				var tableInfo = [];
+				for (i=1; i < rowCount; i++){
+					if(checkBoxes[i-1].checked){
+						schemaInfo.push('schema[]' + '=' + encodeURIComponent(table.rows[i].cells[0].innerHTML));
+						tableInfo.push('table[]' + '=' + encodeURIComponent(table.rows[i].cells[1].innerHTML));
+						console.log(table.rows[i].cells[0].innerHTML);
+						console.log(table.rows[i].cells[1].innerHTML);
 					}
 				}
+				var schemaInfoStr = schemaInfo.join( '&' ).replace( /%20/g, '+' );
+				var tableInfoStr = tableInfo.join( '&' ).replace( /%20/g, '+' );
+				var targetSchemaStr = "";
+				var prefixStr = "";
+				var postInfoStr = dbInfoStr+'&'+schemaInfoStr+'&'+tableInfoStr;
+				if(document.getElementById("prefix").value){
+					prefixStr = 'prefix=' + document.getElementById("prefix").value;
+					postInfoStr += '&'+prefixStr;
+				}
+				if(document.getElementById("schema").value){
+					targetSchemaStr = 'targetSchema=' + document.getElementById("schema").value;
+					postInfoStr += '&'+targetSchemaStr;
+				}
+				
+				pgConnect(postInfoStr);
 			}
 
     </script>
