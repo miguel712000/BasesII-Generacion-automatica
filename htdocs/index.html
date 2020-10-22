@@ -12,12 +12,13 @@
 			}
 		</style>
 		<script>
-			//Variables
+			//Variables globales
 			var dbInfoStr;
 			var isUsingPostgre = false;
 			var isUsingMSServer = false;
 			
 			//función para conectar a base de datos postgreSQL por metodo POST
+			//dbInfoStr -> string codificado con la información que se va pasar en el POST. ej: informacion de conexion, tablas seleccionadas
 			function pgConnect(dbInfoStr)
 			{
 				var xhttp = new XMLHttpRequest();
@@ -35,6 +36,7 @@
 			}
 			
 			//procedimiento para conectar a base de datos
+			//checkea si es una base mssqlserver o postgre
 			function connectDatabase()
 			{
 				isUsingPostgre = document.getElementById("radio_pgsql").checked;
@@ -58,7 +60,7 @@
 						pgConnect(dbInfoStr);
 					}
 					else if(isUsingMSServer){
-				
+						//sqlServerConnect(dbInfoStr);
 					}
 				}
 			}
@@ -81,6 +83,7 @@
 			}
 			
 			//función para confirmar la selección de tablas para CRUDs
+			//crea un string para usar en metodo POST y poder pasar las tablas seleccionadas al archivo php
 			function generateSQLCode(tableElement)
 			{
 				var table = document.getElementById(tableElement);
@@ -108,6 +111,9 @@
 				if(document.getElementById("schema").value){
 					targetSchemaStr = 'targetSchema=' + document.getElementById("schema").value;
 					postInfoStr += '&'+targetSchemaStr;
+				}
+				if(document.getElementById("executeCheckbox").checked){
+					postInfoStr += '&execute=true';
 				}
 				
 				pgConnect(postInfoStr);
@@ -144,7 +150,7 @@
 			</form>
 			<br>
 			
-			<!--Conectar a base de datos-->
+			<!--Botón Conectar a base de datos-->
 			<button onclick="connectDatabase()">
 				Conectar
 			</button>
@@ -155,18 +161,6 @@
 		<div id="content">
 		
 		</div>
-
-		<!--
-		<form action="third.php" method="get">
-			Red<input type="checkbox" name="color[]" id="color" value="red">
-			Green<input type="checkbox" name="color[]" id="color" value="green">
-			Blue<input type="checkbox" name="color[]" id="color" value="blue">
-			Cyan<input type="checkbox" name="color[]" id="color" value="cyan">
-			Magenta<input type="checkbox" name="color[]" id="color" value="Magenta">
-			Yellow<input type="checkbox" name="color[]" id="color" value="yellow">
-			Black<input type="checkbox" name="color[]" id="color" value="black">
-		<input type="submit" value="submit">
-		-->
 		
 		
 	</body>
